@@ -1,0 +1,50 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Media {
+  id         String   @id @default(uuid())
+  filename   String
+  mimeType   String
+  path       String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+  DriveItem  DriveItem?
+}
+
+model DriveItem {
+  id         String     @id @default(uuid())
+  type       ItemType?
+  mediaId    String?    @unique
+  name       String?
+  path       String?
+  createdBy  String?
+  permission Permission?
+  shareLink  String?    @unique
+  createdAt  DateTime   @default(now())
+
+  media      Media?     @relation(fields: [mediaId], references: [id])
+
+  // Self-relation for nested folders
+  parentId   String?
+  parent     DriveItem? @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children   DriveItem[] @relation("FolderHierarchy")
+}
+
+
+
+
+enum ItemType {
+  FILE
+  FOLDER
+}
+
+enum Permission {
+  READ
+  WRITE
+}
